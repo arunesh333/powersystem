@@ -15,19 +15,12 @@
         
         <main class="lab-list">
             <a href="#" class="lab-item" data-copy-target="exp1-code">1. Formation of bus admittance matrix using MATLAB program.</a>
-            <a href="#" class="lab-item" data-copy-target="exp1-code">2. Formation of bus impedance matrix using bus building algorithm in MATLAB.</a>
-            <a href="#" class="lab-item" data-copy-target="exp2-code">3. MATLAB solution for Gauss-Seidel load flow.</a>
-            <a href="#" class="lab-item" data-copy-target="exp3-code">4. NR load flow analysis using MATLAB program.</a>
-            <a href="#" class="lab-item" data-copy-target="exp4-code">5. MATLAB solution for Fast Decoupled load flow.</a>
-            <a href="#" class="lab-item" data-copy-target="exp5-code">6. MATLAB solution of swing equation by point-by-point method.</a>
-            <a href="#" class="lab-item" data-copy-target="exp6-code">7. MATLAB program for obtaining critical clearing angle and time using EAC (SMIB system).</a>
-            <a href="#" class="lab-item" data-copy-target="exp-code">8. Short circuit analysis using ETAP Software.</a>
-            <a href="#" class="lab-item" data-copy-target="exp-code">9. Determination of IDMT Char of Electromechanical type and Microcontroller based over current relay.</a>
-            <a href="#" class="lab-item" data-copy-target="exp-code">10. Determination of Characteristics of MCBs.</a>
-            <a href="#" class="lab-item" data-copy-target="exp-code">11. Determination of String efficiency with and without guard rings.</a>
-            <a href="#" class="lab-item" data-copy-target="exp-code">12. Determination of efficiency and voltage regulation of medium transmission line (nominal T).</a>
-            <a href="#" class="lab-item" data-copy-target="exp-code">13. Determination of efficiency and voltage regulation of medium transmission line (nominal Π).</a>
-            <a href="#" class="lab-item" data-copy-target="exp-code">14. Determination of efficiency and voltage regulation of long transmission line.</a>
+            <a href="#" class="lab-item" data-copy-target="exp2-code">2. Formation of bus impedance matrix using bus building algorithm in MATLAB.</a>
+            <a href="#" class="lab-item" data-copy-target="exp3-code">3. MATLAB solution for Gauss-Seidel load flow.</a>
+            <a href="#" class="lab-item" data-copy-target="exp4-code">4. NR load flow analysis using MATLAB program.</a>
+            <a href="#" class="lab-item" data-copy-target="exp5-code">5. MATLAB solution for Fast Decoupled load flow.</a>
+            <a href="#" class="lab-item" data-copy-target="exp6-code">6. MATLAB solution of swing equation by point-by-point method.</a>
+            <a href="#" class="lab-item" data-copy-target="exp7-code">7. MATLAB program for obtaining critical clearing angle and time using EAC (SMIB system).</a>
         </main>
     </div>
 
@@ -167,272 +160,423 @@ end
 </textarea>
 
 <textarea id="exp4-code" class="hidden-code">
-    clc; clear; close all;
-% Base MVA
-MVA_base = 100;
-% Line data
-z12 = 0.12 + 1i*0.16;
-y12 = 1/z12;
-% Y-bus
-Y = [ y12 -y12;
--y12 y12];
-% Bus data
-V1 = 1 + 0i; % Slack
-P2_spec = -100/MVA_base; % -1.0 pu
-Q2_spec = -50/MVA_base; % -0.5 pu
-% Initial guess
-V2 = 1*exp(1i*0);
-for iter = 1:2
-% Current injection
-I2 = Y(2,1)*V1 + Y(2,2)*V2;
-S2 = V2*conj(I2);
-P2_calc = real(S2);
-Q2_calc = -imag(S2); % load sign convention
-% Mismatch
-dP = P2_spec - P2_calc;
-dQ = Q2_spec - Q2_calc;
-% Jacobian elements
-V2m = abs(V2); d2 = angle(V2);
-V1m = abs(V1); d1 = angle(V1);
-Ymag = abs(Y(2,1)); ang = angle(Y(2,1));
-G22 = real(Y(2,2)); B22 = imag(Y(2,2));
-J11 = -V1m*V2m*Ymag*sin(d2-d1-ang);
-J12 = V1m*Ymag*cos(d2-d1-ang) + 2*V2m*G22;
-J21 = V1m*V2m*Ymag*cos(d2-d1-ang);
-J22 = V1m*Ymag*sin(d2-d1-ang) - 2*V2m*B22;
-J = [J11 J12; J21 J22];
-% Solve corrections
-corr = J\[dP; dQ];
-d_delta2 = corr(1);
-d_V2 = corr(2);
-% Update
-V2 = (abs(V2)+d_V2)*exp(1i*(angle(V2)+d_delta2));
-% Display
-fprintf('Iter %d: V2 = %.4f ∠ %.2f°\n', iter, abs(V2), rad2deg(angle(V2)));
-end
-%% Q4.2: Three-Bus System (Slack + PQ + PV) using NR
-disp('--- Q4.2: Three-Bus System ---');
-% Base MVA
-MVA_base = 100;
-% Line data
-z12 = 0.02 + 1i*0.04;
-z23 = 0.0125 + 1i*0.025;
-z13 = 0.01 + 1i*0.03;
-y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
-% Y-bus
-Y = [ y12+y13 -y12 -y13;
--y12 y12+y23 -y23;
--y13 -y23 y13+y23];
-% Bus data
-V1 = 1.05*exp(1i*0); % Slack
-P2_spec = -400/MVA_base; % -4.0 pu
-Q2_spec = -250/MVA_base; % -2.5 pu
-P3_spec = 200/MVA_base; % +2.0 pu
-V3_mag = 1.04; % PV bus magnitude fixed
-% Initial guesses
-V2 = 1.0*exp(1i*0);
-V3 = V3_mag*exp(1i*0);
-for iter = 1:10
-V = [V1; V2; V3];
-nbus = 3;
-% Power injections
-S = zeros(3,1);
-for i = 1:nbus
-Ii = 0;
-for j = 1:nbus
-Ii = Ii + Y(i,j)*V(j);
-end
-S(i) = V(i)*conj(Ii);
-end
-P = real(S); Q = -imag(S);
-% Mismatch vector [dP2; dQ2; dP3]
-dP2 = P2_spec - P(2);
-dQ2 = Q2_spec - Q(2);
-dP3 = P3_spec - P(3);
-mismatch = [dP2; dQ2; dP3];
-% Jacobian (δ2, V2, δ3 are unknowns)
-V2m=abs(V2); d2=angle(V2);
-V3m=abs(V3); d3=angle(V3);
-V1m=abs(V1); d1=angle(V1);
-% For simplicity, we use numerical Jacobian
-h = 1e-6;
-f = @(x) NR_mismatch(x,V1,V3_mag,Y,P2_spec,Q2_spec,P3_spec);
-J = zeros(3);
-for k=1:3
-x0=[d2;V2m;d3];
-dx=zeros(3,1); dx(k)=h;
-f1=f(x0+dx); f0=f(x0);
-J(:,k)=(f1-f0)/h;
-end
-% Solve corrections
-corr = J\mismatch;
-d2 = d2 + corr(1);
-V2m = V2m + corr(2);
-d3 = d3 + corr(3);
-% Update
-V2 = V2m*exp(1i*d2);
-V3 = V3_mag*exp(1i*d3);
-fprintf('Iter %d: V2=%.4f∠%.2f°, V3=%.4f∠%.2f° |Mismatch|=%.4f\n', ...
-iter, abs(V2), rad2deg(angle(V2)), abs(V3), rad2deg(angle(V3)), norm(mismatch));
-if norm(mismatch) < 1e-4, break; end
-end
-%% Helper function for Q4.2 mismatch
-function mis = NR_mismatch(x,V1,V3mag,Y,P2_spec,Q2_spec,P3_spec)
-d2=x(1); V2mag=x(2); d3=x(3);
-V2=V2mag*exp(1i*d2);
-V3=V3mag*exp(1i*d3);
-V=[V1;V2;V3];
-nbus=3;
-S=zeros(3,1);
-for i=1:nbus
-Ii=0;
-for j=1:nbus
-Ii=Ii+Y(i,j)*V(j);
-end
-S(i)=V(i)*conj(Ii);
-end
-P=real(S); Q=-imag(S);
-dP2=P2_spec-P(2);
-dQ2=Q2_spec-Q(2);
-dP3=P3_spec-P(3);
-mis=[dP2; dQ2; dP3];
-end;
+        clc; clear; close all;
+    % Base MVA
+    MVA_base = 100;
+    % Line data
+    z12 = 0.12 + 1i*0.16;
+    y12 = 1/z12;
+    % Y-bus
+    Y = [ y12 -y12;
+    -y12 y12];
+    % Bus data
+    V1 = 1 + 0i; % Slack
+    P2_spec = -100/MVA_base; % -1.0 pu
+    Q2_spec = -50/MVA_base; % -0.5 pu
+    % Initial guess
+    V2 = 1*exp(1i*0);
+    for iter = 1:2
+    % Current injection
+    I2 = Y(2,1)*V1 + Y(2,2)*V2;
+    S2 = V2*conj(I2);
+    P2_calc = real(S2);
+    Q2_calc = -imag(S2); % load sign convention
+    % Mismatch
+    dP = P2_spec - P2_calc;
+    dQ = Q2_spec - Q2_calc;
+    % Jacobian elements
+    V2m = abs(V2); d2 = angle(V2);
+    V1m = abs(V1); d1 = angle(V1);
+    Ymag = abs(Y(2,1)); ang = angle(Y(2,1));
+    G22 = real(Y(2,2)); B22 = imag(Y(2,2));
+    J11 = -V1m*V2m*Ymag*sin(d2-d1-ang);
+    J12 = V1m*Ymag*cos(d2-d1-ang) + 2*V2m*G22;
+    J21 = V1m*V2m*Ymag*cos(d2-d1-ang);
+    J22 = V1m*Ymag*sin(d2-d1-ang) - 2*V2m*B22;
+    J = [J11 J12; J21 J22];
+    % Solve corrections
+    corr = J\[dP; dQ];
+    d_delta2 = corr(1);
+    d_V2 = corr(2);
+    % Update
+    V2 = (abs(V2)+d_V2)*exp(1i*(angle(V2)+d_delta2));
+    % Display
+    fprintf('Iter %d: V2 = %.4f ∠ %.2f°\n', iter, abs(V2), rad2deg(angle(V2)));
+    end
+    %% Q4.2: Three-Bus System (Slack + PQ + PV) using NR
+    disp('--- Q4.2: Three-Bus System ---');
+    % Base MVA
+    MVA_base = 100;
+    % Line data
+    z12 = 0.02 + 1i*0.04;
+    z23 = 0.0125 + 1i*0.025;
+    z13 = 0.01 + 1i*0.03;
+    y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
+    % Y-bus
+    Y = [ y12+y13 -y12 -y13;
+    -y12 y12+y23 -y23;
+    -y13 -y23 y13+y23];
+    % Bus data
+    V1 = 1.05*exp(1i*0); % Slack
+    P2_spec = -400/MVA_base; % -4.0 pu
+    Q2_spec = -250/MVA_base; % -2.5 pu
+    P3_spec = 200/MVA_base; % +2.0 pu
+    V3_mag = 1.04; % PV bus magnitude fixed
+    % Initial guesses
+    V2 = 1.0*exp(1i*0);
+    V3 = V3_mag*exp(1i*0);
+    for iter = 1:10
+    V = [V1; V2; V3];
+    nbus = 3;
+    % Power injections
+    S = zeros(3,1);
+    for i = 1:nbus
+    Ii = 0;
+    for j = 1:nbus
+    Ii = Ii + Y(i,j)*V(j);
+    end
+    S(i) = V(i)*conj(Ii);
+    end
+    P = real(S); Q = -imag(S);
+    % Mismatch vector [dP2; dQ2; dP3]
+    dP2 = P2_spec - P(2);
+    dQ2 = Q2_spec - Q(2);
+    dP3 = P3_spec - P(3);
+    mismatch = [dP2; dQ2; dP3];
+    % Jacobian (δ2, V2, δ3 are unknowns)
+    V2m=abs(V2); d2=angle(V2);
+    V3m=abs(V3); d3=angle(V3);
+    V1m=abs(V1); d1=angle(V1);
+    % For simplicity, we use numerical Jacobian
+    h = 1e-6;
+    f = @(x) NR_mismatch(x,V1,V3_mag,Y,P2_spec,Q2_spec,P3_spec);
+    J = zeros(3);
+    for k=1:3
+    x0=[d2;V2m;d3];
+    dx=zeros(3,1); dx(k)=h;
+    f1=f(x0+dx); f0=f(x0);
+    J(:,k)=(f1-f0)/h;
+    end
+    % Solve corrections
+    corr = J\mismatch;
+    d2 = d2 + corr(1);
+    V2m = V2m + corr(2);
+    d3 = d3 + corr(3);
+    % Update
+    V2 = V2m*exp(1i*d2);
+    V3 = V3_mag*exp(1i*d3);
+    fprintf('Iter %d: V2=%.4f∠%.2f°, V3=%.4f∠%.2f° |Mismatch|=%.4f\n', ...
+    iter, abs(V2), rad2deg(angle(V2)), abs(V3), rad2deg(angle(V3)), norm(mismatch));
+    if norm(mismatch) < 1e-4, break; end
+    end
+    %% Helper function for Q4.2 mismatch
+    function mis = NR_mismatch(x,V1,V3mag,Y,P2_spec,Q2_spec,P3_spec)
+    d2=x(1); V2mag=x(2); d3=x(3);
+    V2=V2mag*exp(1i*d2);
+    V3=V3mag*exp(1i*d3);
+    V=[V1;V2;V3];
+    nbus=3;
+    S=zeros(3,1);
+    for i=1:nbus
+    Ii=0;
+    for j=1:nbus
+    Ii=Ii+Y(i,j)*V(j);
+    end
+    S(i)=V(i)*conj(Ii);
+    end
+    P=real(S); Q=-imag(S);
+    dP2=P2_spec-P(2);
+    dQ2=Q2_spec-Q(2);
+    dP3=P3_spec-P(3);
+    mis=[dP2; dQ2; dP3];
+    end;
 </textarea>
 
 <textarea id="exp5-code" class="hidden-code">
     clc; clear; close all;
-disp('--- Experiment 5.1: Two-Bus System ---');
-MVA_base = 100;
-% Line data
-z12 = 0.12 + 1i*0.16;
-y12 = 1/z12;
-Y = [ y12 -y12;
--y12 y12];
-B = -imag(Y);
-% Bus data
-V1 = 1; % Slack
-P2_spec = -100/MVA_base; % -1.0 pu
-Q2_spec = -50/MVA_base; % -0.5 pu
-% Initial guess
-V2 = 1.0; delta2 = 0;
-for iter = 1:2
-V = [V1*exp(1i*0); V2*exp(1i*delta2)];
-I2 = Y(2,:)*V;
-S2 = V(2)*conj(I2);
-P2 = real(S2); Q2 = -imag(S2);
-dP = P2_spec - P2;
-dQ = Q2_spec - Q2;
-d_delta2 = dP / (B(2,2)*V2^2);
-d_V2 = dQ / (B(2,2)*V2);
-delta2 = delta2 + d_delta2;
-V2 = V2 + d_V2;
-end
-fprintf('Bus 1: %.4f ∠ %.2f°\n', V1, 0);
-fprintf('Bus 2: %.4f ∠ %.2f°\n\n', V2, rad2deg(delta2));
-disp('--- Experiment 5.2: Three-Bus System ---');
-% Line data
-z12 = 0.02 + 1i*0.04;
-z23 = 0.0125 + 1i*0.025;
-z13 = 0.01 + 1i*0.03;
-y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
-Y = [ y12+y13 -y12 -y13;
--y12 y12+y23 -y23;
--y13 -y23 y13+y23];
-B = -imag(Y);
-% Bus data
-V1 = 1.05*exp(1i*0); % Slack
-P2_spec = -400/MVA_base; % PQ bus
-Q2_spec = -250/MVA_base;
-P3_spec = 200/MVA_base; % PV bus
-V3_mag = 1.04;
-% Initial guesses
-V2 = 1.0*exp(1i*0);
-V3 = V3_mag*exp(1i*0);
-% Indices
-Pbus = [2 3]; % buses with P eqns
-PQ = [2]; % buses with Q eqns
-Bp = B(Pbus,Pbus);
-Bpp = B(PQ,PQ);
-for iter = 1:10
-V = [V1; V2; V3];
-I = Y*V; S = V.*conj(I);
-P = real(S); Q = -imag(S);
-dP = [P2_spec-P(2); P3_spec-P(3)];
-dQ = [Q2_spec-Q(2)];
-d_delta = Bp \ dP;
-d_Vmag = Bpp \ dQ;
-delta = angle(V);
-Vmag = abs(V);
-delta(Pbus) = delta(Pbus) + d_delta;
-Vmag(PQ) = Vmag(PQ) + d_Vmag;
-V1 = abs(V1)*exp(1i*delta(1));
-V2 = Vmag(2)*exp(1i*delta(2));
-V3 = V3_mag*exp(1i*delta(3));
-if norm([dP; dQ]) < 1e-4, break; end
-end
-fprintf('Bus 1: %.4f ∠ %.2f°\n', abs(V1), rad2deg(angle(V1)));
-fprintf('Bus 2: %.4f ∠ %.2f°\n', abs(V2), rad2deg(angle(V2)));
-fprintf('Bus 3: %.4f ∠ %.2f°\n', abs(V3), rad2deg(angle(V3)));
+    disp('--- Experiment 5.1: Two-Bus System ---');
+    MVA_base = 100;
+    % Line data
+    z12 = 0.12 + 1i*0.16;
+    y12 = 1/z12;
+    Y = [ y12 -y12;
+    -y12 y12];
+    B = -imag(Y);
+    % Bus data
+    V1 = 1; % Slack
+    P2_spec = -100/MVA_base; % -1.0 pu
+    Q2_spec = -50/MVA_base; % -0.5 pu
+    % Initial guess
+    V2 = 1.0; delta2 = 0;
+    for iter = 1:2
+    V = [V1*exp(1i*0); V2*exp(1i*delta2)];
+    I2 = Y(2,:)*V;
+    S2 = V(2)*conj(I2);
+    P2 = real(S2); Q2 = -imag(S2);
+    dP = P2_spec - P2;
+    dQ = Q2_spec - Q2;
+    d_delta2 = dP / (B(2,2)*V2^2);
+    d_V2 = dQ / (B(2,2)*V2);
+    delta2 = delta2 + d_delta2;
+    V2 = V2 + d_V2;
+    end
+    fprintf('Bus 1: %.4f ∠ %.2f°\n', V1, 0);
+    fprintf('Bus 2: %.4f ∠ %.2f°\n\n', V2, rad2deg(delta2));
+    disp('--- Experiment 5.2: Three-Bus System ---');
+    % Line data
+    z12 = 0.02 + 1i*0.04;
+    z23 = 0.0125 + 1i*0.025;
+    z13 = 0.01 + 1i*0.03;
+    y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
+    Y = [ y12+y13 -y12 -y13;
+    -y12 y12+y23 -y23;
+    -y13 -y23 y13+y23];
+    B = -imag(Y);
+    % Bus data
+    V1 = 1.05*exp(1i*0); % Slack
+    P2_spec = -400/MVA_base; % PQ bus
+    Q2_spec = -250/MVA_base;
+    P3_spec = 200/MVA_base; % PV bus
+    V3_mag = 1.04;
+    % Initial guesses
+    V2 = 1.0*exp(1i*0);
+    V3 = V3_mag*exp(1i*0);
+    % Indices
+    Pbus = [2 3]; % buses with P eqns
+    PQ = [2]; % buses with Q eqns
+    Bp = B(Pbus,Pbus);
+    Bpp = B(PQ,PQ);
+    for iter = 1:10
+    V = [V1; V2; V3];
+    I = Y*V; S = V.*conj(I);
+    P = real(S); Q = -imag(S);
+    dP = [P2_spec-P(2); P3_spec-P(3)];
+    dQ = [Q2_spec-Q(2)];
+    d_delta = Bp \ dP;
+    d_Vmag = Bpp \ dQ;
+    delta = angle(V);
+    Vmag = abs(V);
+    delta(Pbus) = delta(Pbus) + d_delta;
+    Vmag(PQ) = Vmag(PQ) + d_Vmag;
+    V1 = abs(V1)*exp(1i*delta(1));
+    V2 = Vmag(2)*exp(1i*delta(2));
+    V3 = V3_mag*exp(1i*delta(3));
+    if norm([dP; dQ]) < 1e-4, break; end
+    end
+    fprintf('Bus 1: %.4f ∠ %.2f°\n', abs(V1), rad2deg(angle(V1)));
+    fprintf('Bus 2: %.4f ∠ %.2f°\n', abs(V2), rad2deg(angle(V2)));
+    fprintf('Bus 3: %.4f ∠ %.2f°\n', abs(V3), rad2deg(angle(V3)));
 </textarea>
 
 <textarea id="exp6-code" class="hidden-code">
     clc; clear; close all;
-disp('--- Experiment 6.1: Two-Bus System ---');
-MVA_base = 100;
-% Line data
-z12 = 0.12 + 1i*0.16;
-y12 = 1/z12;
-Y = [ y12 -y12;
--y12 y12];
-% Bus data
-V1 = 1; % Slack
-P2_spec = -100/MVA_base; % PQ bus
-Q2_spec = -50/MVA_base;
-S2_spec = P2_spec + 1i*Q2_spec;
-% Initial guess
-V2 = 1 + 0i;
-for iter = 1:2
-% Update PQ bus voltage using GS formula
-V2 = (1/Y(2,2)) * ((conj(S2_spec)/conj(V2)) - Y(2,1)*V1);
-end
-fprintf('Bus 1: %.4f ∠ %.2f°\n', V1, 0);
-fprintf('Bus 2: %.4f ∠ %.2f°\n\n', abs(V2), rad2deg(angle(V2)));
-disp('--- Experiment 6.2: Three-Bus System ---');
-% Line data
-z12 = 0.02 + 1i*0.04;
-z23 = 0.0125 + 1i*0.025;
-z13 = 0.01 + 1i*0.03;
-y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
-Y = [ y12+y13 -y12 -y13;
--y12 y12+y23 -y23;
--y13 -y23 y13+y23];
-% Bus data
-V1 = 1.05*exp(1i*0); % Slack
-P2_spec = -400/MVA_base; % PQ bus
-Q2_spec = -250/MVA_base;
-S2_spec = P2_spec + 1i*Q2_spec;
-P3_spec = 200/MVA_base; % PV bus (P specified, |V| fixed)
-V3_mag = 1.04;
-% Initial guesses
-V2 = 1.0 + 0i;
-V3 = V3_mag*exp(1i*0);
-for iter = 1:10
-% Update V2 (PQ bus)
-V2 = (1/Y(2,2)) * ((conj(S2_spec)/conj(V2)) - (Y(2,1)*V1 + Y(2,3)*V3));
-% Update V3 (PV bus): compute Q3 from power balance
-I3 = Y(3,1)*V1 + Y(3,2)*V2 + Y(3,3)*V3;
-S3 = V3*conj(I3);
-Q3_calc = -imag(S3); % reactive power injection
-S3_spec = P3_spec + 1i*Q3_calc; % use this for update
-V3 = (1/Y(3,3)) * ((conj(S3_spec)/conj(V3)) - (Y(3,1)*V1 + Y(3,2)*V2));
-% Enforce |V3| = specified magnitude
-V3 = V3_mag * exp(1i*angle(V3));
-end
-fprintf('Bus 1: %.4f ∠ %.2f°\n', abs(V1), rad2deg(angle(V1)));
-fprintf('Bus 2: %.4f ∠ %.2f°\n', abs(V2), rad2deg(angle(V2)));
-fprintf('Bus 3: %.4f ∠ %.2f°\n', abs(V3), rad2deg(angle(V3)));
+    disp('--- Experiment 6.1: Two-Bus System ---');
+    MVA_base = 100;
+    % Line data
+    z12 = 0.12 + 1i*0.16;
+    y12 = 1/z12;
+    Y = [ y12 -y12;
+    -y12 y12];
+    % Bus data
+    V1 = 1; % Slack
+    P2_spec = -100/MVA_base; % PQ bus
+    Q2_spec = -50/MVA_base;
+    S2_spec = P2_spec + 1i*Q2_spec;
+    % Initial guess
+    V2 = 1 + 0i;
+    for iter = 1:2
+    % Update PQ bus voltage using GS formula
+    V2 = (1/Y(2,2)) * ((conj(S2_spec)/conj(V2)) - Y(2,1)*V1);
+    end
+    fprintf('Bus 1: %.4f ∠ %.2f°\n', V1, 0);
+    fprintf('Bus 2: %.4f ∠ %.2f°\n\n', abs(V2), rad2deg(angle(V2)));
+    disp('--- Experiment 6.2: Three-Bus System ---');
+    % Line data
+    z12 = 0.02 + 1i*0.04;
+    z23 = 0.0125 + 1i*0.025;
+    z13 = 0.01 + 1i*0.03;
+    y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
+    Y = [ y12+y13 -y12 -y13;
+    -y12 y12+y23 -y23;
+    -y13 -y23 y13+y23];
+    % Bus data
+    V1 = 1.05*exp(1i*0); % Slack
+    P2_spec = -400/MVA_base; % PQ bus
+    Q2_spec = -250/MVA_base;
+    S2_spec = P2_spec + 1i*Q2_spec;
+    P3_spec = 200/MVA_base; % PV bus (P specified, |V| fixed)
+    V3_mag = 1.04;
+    % Initial guesses
+    V2 = 1.0 + 0i;
+    V3 = V3_mag*exp(1i*0);
+    for iter = 1:10
+    % Update V2 (PQ bus)
+    V2 = (1/Y(2,2)) * ((conj(S2_spec)/conj(V2)) - (Y(2,1)*V1 + Y(2,3)*V3));
+    % Update V3 (PV bus): compute Q3 from power balance
+    I3 = Y(3,1)*V1 + Y(3,2)*V2 + Y(3,3)*V3;
+    S3 = V3*conj(I3);
+    Q3_calc = -imag(S3); % reactive power injection
+    S3_spec = P3_spec + 1i*Q3_calc; % use this for update
+    V3 = (1/Y(3,3)) * ((conj(S3_spec)/conj(V3)) - (Y(3,1)*V1 + Y(3,2)*V2));
+    % Enforce |V3| = specified magnitude
+    V3 = V3_mag * exp(1i*angle(V3));
+    end
+    fprintf('Bus 1: %.4f ∠ %.2f°\n', abs(V1), rad2deg(angle(V1)));
+    fprintf('Bus 2: %.4f ∠ %.2f°\n', abs(V2), rad2deg(angle(V2)));
+    fprintf('Bus 3: %.4f ∠ %.2f°\n', abs(V3), rad2deg(angle(V3)));
 </textarea>
+<textarea id="exp7-code" class="hidden-code">
+    clc;
+clear;
+close all;
 
+%% --- Given System Data ---
+f = 60;             % Frequency (Hz)
+H = 5;              % Inertia constant (MJ/MVA)
+Xd_prime = 0.3;     % Generator transient reactance (pu)
+Xt = 0.2;           % Transformer reactance (pu)
+XL1 = 0.3;          % Line 1 reactance (pu)
+XL2 = 0.3;          % Line 2 reactance (pu)
+P_load = 0.8;       % Real power to infinite bus (pu)
+Q_load = 0.074;     % Reactive power to infinite bus (pu)
+V_inf = 1.0;        % Infinite bus voltage (pu)
+Pm = P_load;        % Mechanical power input (pu)
+
+%% --- Preliminary Calculations (E' and delta0) ---
+fprintf('--- Initial Conditions ---\n');
+
+% Pre-fault line reactance (parallel)
+X_lines_pre = (XL1 * XL2) / (XL1 + XL2);
+
+% Find E' and delta0 by working backwards from infinite bus
+I = conj( (P_load + 1j*Q_load) / (V_inf * exp(1j*0)) );
+V1 = V_inf + I * (1j * X_lines_pre);
+E_prime = V1 + I * (1j * (Xd_prime + Xt));
+
+E_mag = abs(E_prime);
+delta0_rad = angle(E_prime);
+delta0_deg = rad2deg(delta0_rad);
+
+% Verification (using P = (E'V/X)sin(delta))
+X1_pre = Xd_prime + Xt + X_lines_pre;
+Pmax1_pre = (E_mag * V_inf) / X1_pre;
+P_check = Pmax1_pre * sin(delta0_rad);
+
+fprintf('Calculated |E''| = %.3f pu\n', E_mag);
+fprintf('Calculated delta0 = %.2f degrees\n', delta0_deg);
+fprintf('Verification: P_check = %.3f pu (Should be 0.8)\n', P_check);
+
+%% --- Part (a): Fault at Sending End (Bus 1) ---
+fprintf('\n--- Part (a): Fault at Sending End ---\n');
+
+% 1. Define Pmax for all three states
+Pmax1_a = Pmax1_pre;        % Pre-fault
+Pmax2_a = 0;                % During-fault (Fault at bus 1, P_transfer=0)
+Pmax3_a = Pmax1_pre;        % Post-fault (both lines intact)
+
+% 2. Find angles
+delta_max_a_rad = pi - delta0_rad; % Unstable angle
+delta_max_a_deg = rad2deg(delta_max_a_rad);
+
+% 3. Calculate Critical Clearing Angle (delta_cr)
+cos_delta_cr_a = (Pm * (delta_max_a_rad - delta0_rad) + ...
+                  Pmax3_a * cos(delta_max_a_rad) - ...
+                  Pmax2_a * cos(delta0_rad)) / (Pmax3_a - Pmax2_a);
+delta_cr_a_rad = acos(cos_delta_cr_a);
+delta_cr_a_deg = rad2deg(delta_cr_a_rad);
+
+% 4. Calculate Critical Clearing Time (t_cr)
+t_cr_a = sqrt( (2 * H * (delta_cr_a_rad - delta0_rad)) / (pi * f * Pm) );
+
+% Display results for Part (a)
+fprintf('Pmax1 = %.2f pu, Pmax2 = %.2f pu, Pmax3 = %.2f pu\n', Pmax1_a, Pmax2_a, Pmax3_a);
+fprintf('Critical Clearing Angle (delta_cr): %.2f degrees\n', delta_cr_a_deg);
+fprintf('Critical Clearing Time (t_cr): %.3f seconds\n', t_cr_a);
+
+% Plot for Part (a)
+delta_plot = linspace(0, pi, 180);
+P1_plot_a = Pmax1_a * sin(delta_plot);
+P2_plot_a = Pmax2_a * sin(delta_plot);
+Pm_plot = ones(size(delta_plot)) * Pm;
+
+figure('Name', 'Part (a): Fault at Sending End');
+plot(rad2deg(delta_plot), P1_plot_a, 'b-', 'LineWidth', 2); hold on;
+plot(rad2deg(delta_plot), P2_plot_a, 'r--', 'LineWidth', 2);
+plot(rad2deg(delta_plot), Pm_plot, 'k:', 'LineWidth', 1.5);
+title('Part (a): Power-Angle Curve (Fault at Sending End)');
+xlabel('Angle \delta (degrees)'); 
+ylabel('Power P (pu)');
+legend('Pre/Post-fault (Pmax1, Pmax3)', 'During-fault (Pmax2)', ...
+       'Mechanical Power (Pm)', 'Location', 'northwest');
+ylim([0, Pmax1_a*1.1]); 
+grid on;
+% Mark key angles
+plot([delta0_deg, delta0_deg], [0, Pm], 'g--');
+text(delta0_deg, -0.1, sprintf('\\delta_0 = %.1f^o', delta0_deg));
+plot([delta_cr_a_deg, delta_cr_a_deg], [0, Pmax1_a*sin(delta_cr_a_rad)], 'm--');
+text(delta_cr_a_deg, -0.1, sprintf('\\delta_{cr} = %.1f^o', delta_cr_a_deg));
+plot([delta_max_a_deg, delta_max_a_deg], [0, Pm], 'g--');
+text(delta_max_a_deg, -0.1, sprintf('\\delta_{max} = %.1f^o', delta_max_a_deg));
+hold off;
+
+
+%% --- Part (b): Fault at Middle of Line 2 ---
+fprintf('\n--- Part (b): Fault at Middle of Line ---\n');
+
+% 1. Define Pmax for all three states
+Pmax1_b = Pmax1_pre;        % Pre-fault (same)
+
+% During-fault (Pmax from nodal analysis, P_e = 0.65*sin(delta))
+Pmax2_b = 0.65;             
+
+% Post-fault (line 2 isolated)
+X3_b = Xd_prime + Xt + XL1;
+Pmax3_b = (E_mag * V_inf) / X3_b;
+
+% 2. Find angles
+% New stable angle (delta_f) on post-fault curve
+delta_f_b_rad = asin(Pm / Pmax3_b);
+% New unstable angle (delta_max)
+delta_max_b_rad = pi - delta_f_b_rad;
+delta_max_b_deg = rad2deg(delta_max_b_rad);
+
+% 3. Calculate Critical Clearing Angle (delta_cr)
+cos_delta_cr_b = (Pm * (delta_max_b_rad - delta0_rad) + ...
+                  Pmax3_b * cos(delta_max_b_rad) - ...
+                  Pmax2_b * cos(delta0_rad)) / (Pmax3_b - Pmax2_b);
+delta_cr_b_rad = acos(cos_delta_cr_b);
+delta_cr_b_deg = rad2deg(delta_cr_b_rad);
+
+% Display results for Part (b)
+fprintf('Pmax1 = %.2f pu, Pmax2 = %.2f pu, Pmax3 = %.3f pu\n', Pmax1_b, Pmax2_b, Pmax3_b);
+fprintf('Critical Clearing Angle (delta_cr): %.2f degrees\n', delta_cr_b_deg);
+
+% Plot for Part (b)
+P1_plot_b = Pmax1_b * sin(delta_plot);
+P2_plot_b = Pmax2_b * sin(delta_plot);
+P3_plot_b = Pmax3_b * sin(delta_plot);
+
+figure('Name', 'Part (b): Fault at Mid-Line');
+plot(rad2deg(delta_plot), P1_plot_b, 'b-', 'LineWidth', 2); hold on;
+plot(rad2deg(delta_plot), P2_plot_b, 'r--', 'LineWidth', 2);
+plot(rad2deg(delta_plot), P3_plot_b, 'g-.', 'LineWidth', 2);
+plot(rad2deg(delta_plot), Pm_plot, 'k:', 'LineWidth', 1.5);
+title('Part (b): Power-Angle Curve (Fault at Mid-line)');
+xlabel('Angle \delta (degrees)'); 
+ylabel('Power P (pu)');
+legend('Pre-fault (Pmax1)', 'During-fault (Pmax2)', ...
+       'Post-fault (Pmax3)', 'Mechanical Power (Pm)', 'Location', 'northwest');
+ylim([0, Pmax1_a*1.1]); 
+grid on;
+% Mark key angles
+plot([delta0_deg, delta0_deg], [0, Pm], 'c--');
+text(delta0_deg, -0.1, sprintf('\\delta_0 = %.1f^o', delta0_deg));
+plot([delta_cr_b_deg, delta_cr_b_deg], [0, Pmax3_b*sin(delta_cr_b_rad)], 'm--');
+text(delta_cr_b_deg, -0.1, sprintf('\\delta_{cr} = %.1f^o', delta_cr_b_deg));
+plot([delta_max_b_deg, delta_max_b_deg], [0, Pm], 'c--');
+text(delta_max_b_deg, -0.1, sprintf('\\delta_{max} = %.1f^o', delta_max_b_deg));
+hold off;
+</textarea>
 
     <script src="script.js"></script>
 </body>
