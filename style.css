@@ -1,0 +1,99 @@
+/* Basic styles for the page */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+/* Container to simulate the phone screen */
+.container {
+    width: 100%;
+    max-width: 450px; /* Simulates phone width */
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Header (Blue bar) */
+header {
+    background-color: #000080; /* Dark Blue */
+    color: white;
+    padding: 18px 20px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.25rem; /* 20px */
+}
+
+/* List container */
+.lab-list {
+    padding: 20px;
+}
+
+/* Each clickable box (the <a> tag) */
+.lab-item {
+    display: block; /* Makes the whole box clickable */
+    background-color: #ffffff;
+    border: 3px solid #00ff00; /* Bright Green */
+    border-radius: 15px; /* Rounded corners */
+    padding: 15px;
+    margin-bottom: 12px;
+    
+    /* Text styles */
+    color: #333;
+    text-decoration: none; /* Removes underline from the link */
+    font-size: 0.9rem; /* 14.4px */
+    font-weight: 500;
+    line-height: 1.4;
+
+    /* Animation */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover effect for desktop */
+.lab-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.2);
+}
+
+/* Active (click) effect */
+.lab-item:active {
+    transform: scale(0.98);
+}
+
+/* "Copied!" notification pop-up */
+#copy-notification {
+    position: fixed; /* Stays on screen */
+    bottom: -100px; /* Starts off-screen */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    z-index: 1000;
+    
+    /* Smooth transition for appearing/disappearing */
+    transition: bottom 0.3s ease-in-out;
+}
+
+/* Class added by JavaScript to show the notification */
+#copy-notification.show {
+    bottom: 30px; /* Slides it into view */
+}
+
+/* MODIFICATION: 
+  Added this new class to hide the code <textarea>
+*/
+.hidden-code {
+    display: none;
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power System Lab Exps</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Power System Lab Exps</h1>
+        </header>
+        
+        <main class="lab-list">
+            <a href="#" class="lab-item" data-copy-target="exp1-code">
+                1. Formation of bus admittance matrix using MATLAB program.
+            </a>
+
+            <a href="#" class="lab-item">2. Formation of bus impedance matrix using bus building algorithm in MATLAB.</a>
+            <a href="#" class="lab-item">3. MATLAB solution for Gauss-Seidel load flow.</a>
+            <a href="#" class="lab-item">4. NR load flow analysis using MATLAB program.</a>
+            <a href="#" class="lab-item">5. MATLAB solution for Fast Decoupled load flow.</a>
+            <a href="#" class="lab-item">6. MATLAB solution of swing equation by point-by-point method.</a>
+            <a href="#" class="lab-item">7. MATLAB program for obtaining critical clearing angle and time using EAC (SMIB system).</a>
+            <a href="#" class="lab-item">8. Short circuit analysis using ETAP Software.</a>
+            <a href="#" class="lab-item">9. Determination of IDMT Char of Electromechanical type and Microcontroller based over current relay.</a>
+            <a href="#" class="lab-item">10. Determination of Characteristics of MCBs.</a>
+            <a href="#" class="lab-item">11. Determination of String efficiency with and without guard rings.</a>
+            <a href="#" class="lab-item">12. Determination of efficiency and voltage regulation of medium transmission line (nominal T).</a>
+            <a href="#" class="lab-item">13. Determination of efficiency and voltage regulation of medium transmission line (nominal Π).</a>
+            <a href="#" class="lab-item">14. Determination of efficiency and voltage regulation of long transmission line.</a>
+        </main>
+    </div>
+
+    <div id="copy-notification">
+        Copied to clipboard!
+    </div>
+
+
+    <textarea id="exp1-code" class="hidden-code">
+function Ybus = formYbus(linedata)
+    % formYbus: Forms the bus admittance matrix (Ybus)
+    %
+    % linedata format:
+    % Col 1: From Bus (i)
+    % Col 2: To Bus (k)
+    % Col 3: Series Resistance (R) in p.u.
+    % Col 4: Series Reactance (X) in p.u.
+    % Col 5: Total Line Charging Admittance (y'_sh) in p.u.
+    %        (This is B_c, so it's a positive value)
+
+    % Find the number of buses
+    nbus = max(max(linedata(:, 1:2)));
+
+    % Initialize Ybus as an n x n matrix of zeros
+    Ybus = zeros(nbus, nbus);
+
+    % Get the number of lines
+    nlines = size(linedata, 1);
+
+    % Process each line one by one
+    for i = 1:nlines
+        % Get line parameters
+        f_bus = linedata(i, 1); % From bus
+        t_bus = linedata(i, 2); % To bus
+        
+        Z_series = linedata(i, 3) + 1j * linedata(i, 4);
+        y_series = 1 / Z_series;
+        
+        y_shunt = 1j * linedata(i, 5) / 2; % Half at each end
+
+        % Add to Off-Diagonal Elements
+        Ybus(f_bus, t_bus) = Ybus(f_bus, t_bus) - y_series;
+        Ybus(t_bus, f_bus) = Ybus(f_bus, t_bus); % Ybus is symmetric
+        
+        % Add to Diagonal Elements
+        Ybus(f_bus, f_bus) = Ybus(f_bus, f_bus) + y_series + y_shunt;
+        Ybus(t_bus, t_bus) = Ybus(t_bus, t_bus) + y_series + y_shunt;
+    end
+end
+
+
+% Script to compute Ybus for Exercise 1.1
+clc;
+clear;
+format short;
+
+% Define the line data
+% [From, To, R, X, Total_B]
+linedata_1_1 = [
+    1, 2, 0.2,  0.8,  0.02;
+    2, 3, 0.3,  0.9,  0.03;
+    2, 4, 0.25, 1.0,  0.04;
+    3, 4, 0.2,  0.8,  0.02;
+    1, 3, 0.1,  0.4,  0.01
+];
+
+% Call the function to form Ybus
+Ybus_1_1 = formYbus(linedata_1_1);
+
+% Display the result
+disp('*** Bus Admittance Matrix (Ybus) for Exercise 1.1 ***');
+disp(Ybus_1_1);
+</textarea>
+
+    <script src="script.js"></script>
+</body>
+</html>
