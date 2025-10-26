@@ -14,23 +14,20 @@
         </header>
         
         <main class="lab-list">
-            <a href="#" class="lab-item" data-copy-target="exp1-code">
-                1. Formation of bus admittance matrix using MATLAB program.
-            </a>
-
-            <a href="#" class="lab-item">2. Formation of bus impedance matrix using bus building algorithm in MATLAB.</a>
-            <a href="#" class="lab-item">3. MATLAB solution for Gauss-Seidel load flow.</a>
-            <a href="#" class="lab-item">4. NR load flow analysis using MATLAB program.</a>
-            <a href="#" class="lab-item">5. MATLAB solution for Fast Decoupled load flow.</a>
-            <a href="#" class="lab-item">6. MATLAB solution of swing equation by point-by-point method.</a>
-            <a href="#" class="lab-item">7. MATLAB program for obtaining critical clearing angle and time using EAC (SMIB system).</a>
-            <a href="#" class="lab-item">8. Short circuit analysis using ETAP Software.</a>
-            <a href="#" class="lab-item">9. Determination of IDMT Char of Electromechanical type and Microcontroller based over current relay.</a>
-            <a href="#" class="lab-item">10. Determination of Characteristics of MCBs.</a>
-            <a href="#" class="lab-item">11. Determination of String efficiency with and without guard rings.</a>
-            <a href="#" class="lab-item">12. Determination of efficiency and voltage regulation of medium transmission line (nominal T).</a>
-            <a href="#" class="lab-item">13. Determination of efficiency and voltage regulation of medium transmission line (nominal Π).</a>
-            <a href="#" class="lab-item">14. Determination of efficiency and voltage regulation of long transmission line.</a>
+            <a href="#" class="lab-item" data-copy-target="exp1-code">1. Formation of bus admittance matrix using MATLAB program.</a>
+            <a href="#" class="lab-item" data-copy-target="exp1-code">2. Formation of bus impedance matrix using bus building algorithm in MATLAB.</a>
+            <a href="#" class="lab-item" data-copy-target="exp2-code">3. MATLAB solution for Gauss-Seidel load flow.</a>
+            <a href="#" class="lab-item" data-copy-target="exp3-code">4. NR load flow analysis using MATLAB program.</a>
+            <a href="#" class="lab-item" data-copy-target="exp4-code">5. MATLAB solution for Fast Decoupled load flow.</a>
+            <a href="#" class="lab-item" data-copy-target="exp5-code">6. MATLAB solution of swing equation by point-by-point method.</a>
+            <a href="#" class="lab-item" data-copy-target="exp6-code">7. MATLAB program for obtaining critical clearing angle and time using EAC (SMIB system).</a>
+            <a href="#" class="lab-item" data-copy-target="exp-code">8. Short circuit analysis using ETAP Software.</a>
+            <a href="#" class="lab-item" data-copy-target="exp-code">9. Determination of IDMT Char of Electromechanical type and Microcontroller based over current relay.</a>
+            <a href="#" class="lab-item" data-copy-target="exp-code">10. Determination of Characteristics of MCBs.</a>
+            <a href="#" class="lab-item" data-copy-target="exp-code">11. Determination of String efficiency with and without guard rings.</a>
+            <a href="#" class="lab-item" data-copy-target="exp-code">12. Determination of efficiency and voltage regulation of medium transmission line (nominal T).</a>
+            <a href="#" class="lab-item" data-copy-target="exp-code">13. Determination of efficiency and voltage regulation of medium transmission line (nominal Π).</a>
+            <a href="#" class="lab-item" data-copy-target="exp-code">14. Determination of efficiency and voltage regulation of long transmission line.</a>
         </main>
     </div>
 
@@ -39,71 +36,403 @@
     </div>
 
 
-    <textarea id="exp1-code" class="hidden-code">
-function Ybus = formYbus(linedata)
-    % formYbus: Forms the bus admittance matrix (Ybus)
-    %
-    % linedata format:
-    % Col 1: From Bus (i)
-    % Col 2: To Bus (k)
-    % Col 3: Series Resistance (R) in p.u.
-    % Col 4: Series Reactance (X) in p.u.
-    % Col 5: Total Line Charging Admittance (y'_sh) in p.u.
-    %        (This is B_c, so it's a positive value)
+<textarea id="exp1-code" class="hidden-code">
+        function Ybus = formYbus(linedata)
+            % formYbus: Forms the bus admittance matrix (Ybus)
+            %
+            % linedata format:
+            % Col 1: From Bus (i)
+            % Col 2: To Bus (k)
+            % Col 3: Series Resistance (R) in p.u.
+            % Col 4: Series Reactance (X) in p.u.
+            % Col 5: Total Line Charging Admittance (y'_sh) in p.u.
+            %        (This is B_c, so it's a positive value)
 
-    % Find the number of buses
-    nbus = max(max(linedata(:, 1:2)));
+            % Find the number of buses
+            nbus = max(max(linedata(:, 1:2)));
 
-    % Initialize Ybus as an n x n matrix of zeros
-    Ybus = zeros(nbus, nbus);
+            % Initialize Ybus as an n x n matrix of zeros
+            Ybus = zeros(nbus, nbus);
 
-    % Get the number of lines
-    nlines = size(linedata, 1);
+            % Get the number of lines
+            nlines = size(linedata, 1);
 
-    % Process each line one by one
-    for i = 1:nlines
-        % Get line parameters
-        f_bus = linedata(i, 1); % From bus
-        t_bus = linedata(i, 2); % To bus
-        
-        Z_series = linedata(i, 3) + 1j * linedata(i, 4);
-        y_series = 1 / Z_series;
-        
-        y_shunt = 1j * linedata(i, 5) / 2; % Half at each end
+            % Process each line one by one
+            for i = 1:nlines
+                % Get line parameters
+                f_bus = linedata(i, 1); % From bus
+                t_bus = linedata(i, 2); % To bus
+                
+                Z_series = linedata(i, 3) + 1j * linedata(i, 4);
+                y_series = 1 / Z_series;
+                
+                y_shunt = 1j * linedata(i, 5) / 2; % Half at each end
 
-        % Add to Off-Diagonal Elements
-        Ybus(f_bus, t_bus) = Ybus(f_bus, t_bus) - y_series;
-        Ybus(t_bus, f_bus) = Ybus(f_bus, t_bus); % Ybus is symmetric
-        
-        % Add to Diagonal Elements
-        Ybus(f_bus, f_bus) = Ybus(f_bus, f_bus) + y_series + y_shunt;
-        Ybus(t_bus, t_bus) = Ybus(t_bus, t_bus) + y_series + y_shunt;
-    end
-end
+                % Add to Off-Diagonal Elements
+                Ybus(f_bus, t_bus) = Ybus(f_bus, t_bus) - y_series;
+                Ybus(t_bus, f_bus) = Ybus(f_bus, t_bus); % Ybus is symmetric
+                
+                % Add to Diagonal Elements
+                Ybus(f_bus, f_bus) = Ybus(f_bus, f_bus) + y_series + y_shunt;
+                Ybus(t_bus, t_bus) = Ybus(t_bus, t_bus) + y_series + y_shunt;
+            end
+        end
 
 
-% Script to compute Ybus for Exercise 1.1
-clc;
-clear;
-format short;
+        % Script to compute Ybus for Exercise 1.1
+        clc;
+        clear;
+        format short;
 
-% Define the line data
-% [From, To, R, X, Total_B]
-linedata_1_1 = [
-    1, 2, 0.2,  0.8,  0.02;
-    2, 3, 0.3,  0.9,  0.03;
-    2, 4, 0.25, 1.0,  0.04;
-    3, 4, 0.2,  0.8,  0.02;
-    1, 3, 0.1,  0.4,  0.01
-];
+        % Define the line data
+        % [From, To, R, X, Total_B]
+        linedata_1_1 = [
+            1, 2, 0.2,  0.8,  0.02;
+            2, 3, 0.3,  0.9,  0.03;
+            2, 4, 0.25, 1.0,  0.04;
+            3, 4, 0.2,  0.8,  0.02;
+            1, 3, 0.1,  0.4,  0.01
+        ];
 
-% Call the function to form Ybus
-Ybus_1_1 = formYbus(linedata_1_1);
+        % Call the function to form Ybus
+        Ybus_1_1 = formYbus(linedata_1_1);
 
-% Display the result
-disp('*** Bus Admittance Matrix (Ybus) for Exercise 1.1 ***');
-disp(Ybus_1_1);
+        % Display the result
+        disp('*** Bus Admittance Matrix (Ybus) for Exercise 1.1 ***');
+        disp(Ybus_1_1);
 </textarea>
+
+<textarea id="exp2-code" class="hidden-code">
+    clc;
+clear;
+z12 = 0.2j;
+Zbus = z12;
+z13 = 0.4j;
+Zbus = blkdiag(Zbus, z13);
+z23 = 0.8j;
+dZ = Zbus(:,1) - Zbus(:,2);
+Zee = z23 + Zbus(1,1) + Zbus(2,2) - 2*Zbus(1,2);
+Zbus = Zbus - (dZ * dZ') / Zee;
+z24 = 0.4j;
+m = size(Zbus,1);
+Znew = zeros(m+1);
+Znew(1:m,1:m) = Zbus;
+Znew(1:m,end) = Zbus(:,1);
+Znew(end,1:m) = Zbus(1,:);
+Znew(end,end) = Zbus(1,1) + z24;
+Zbus = Znew;
+z34 = 0.4j;
+dZ = Zbus(:,2) - Zbus(:,3);
+Zee = z34 + Zbus(2,2) + Zbus(3,3) - 2*Zbus(2,3);
+Zbus = Zbus - (dZ * dZ') / Zee;
+disp('Final Bus Impedance Matrix Zbus:');
+disp(Zbus);
+</textarea>
+
+<textarea id="exp3-code" class="hidden-code">
+    clc;
+clear;
+V = [1.05+0j; 1+0j; 1+0j];
+Psch = [0; -138.6/100; -256.6/100];
+Qsch = [0; -45.2/100; 0];
+Z12 = 0.02 + 0.04j;
+Z13 = 0.01 + 0.03j;
+Z23 = 0.0125 + 0.025j;
+Y12 = -1/Z12;
+Y13 = -1/Z13;
+Y23 = -1/Z23;
+Y11 = - (Y12 + Y13);
+Y22 = - (Y12 + Y23);
+Y33 = - (Y13 + Y23);
+Y21 = Y12;
+Y31 = Y13;
+Y32 = Y23;
+Ybus = [Y11, Y12, Y13;
+Y21, Y22, Y23;
+Y31, Y32, Y33];
+for i = 2:3
+sumYV = 0;
+for j = 1:3
+if j ~= i
+sumYV = sumYV + Ybus(i,j)*V(j);
+end
+end
+V(i) = (1/Ybus(i,i)) * ((Psch(i) - 1j*Qsch(i))/conj(V(i)) - sumYV);
+end
+for i = 1:3
+mag = abs(V(i));
+ang = angle(V(i))*180/pi;
+fprintf('Bus %d: %.4f ∠ %.4f°\n', i, mag, ang);
+end
+</textarea>
+
+<textarea id="exp4-code" class="hidden-code">
+    clc; clear; close all;
+% Base MVA
+MVA_base = 100;
+% Line data
+z12 = 0.12 + 1i*0.16;
+y12 = 1/z12;
+% Y-bus
+Y = [ y12 -y12;
+-y12 y12];
+% Bus data
+V1 = 1 + 0i; % Slack
+P2_spec = -100/MVA_base; % -1.0 pu
+Q2_spec = -50/MVA_base; % -0.5 pu
+% Initial guess
+V2 = 1*exp(1i*0);
+for iter = 1:2
+% Current injection
+I2 = Y(2,1)*V1 + Y(2,2)*V2;
+S2 = V2*conj(I2);
+P2_calc = real(S2);
+Q2_calc = -imag(S2); % load sign convention
+% Mismatch
+dP = P2_spec - P2_calc;
+dQ = Q2_spec - Q2_calc;
+% Jacobian elements
+V2m = abs(V2); d2 = angle(V2);
+V1m = abs(V1); d1 = angle(V1);
+Ymag = abs(Y(2,1)); ang = angle(Y(2,1));
+G22 = real(Y(2,2)); B22 = imag(Y(2,2));
+J11 = -V1m*V2m*Ymag*sin(d2-d1-ang);
+J12 = V1m*Ymag*cos(d2-d1-ang) + 2*V2m*G22;
+J21 = V1m*V2m*Ymag*cos(d2-d1-ang);
+J22 = V1m*Ymag*sin(d2-d1-ang) - 2*V2m*B22;
+J = [J11 J12; J21 J22];
+% Solve corrections
+corr = J\[dP; dQ];
+d_delta2 = corr(1);
+d_V2 = corr(2);
+% Update
+V2 = (abs(V2)+d_V2)*exp(1i*(angle(V2)+d_delta2));
+% Display
+fprintf('Iter %d: V2 = %.4f ∠ %.2f°\n', iter, abs(V2), rad2deg(angle(V2)));
+end
+%% Q4.2: Three-Bus System (Slack + PQ + PV) using NR
+disp('--- Q4.2: Three-Bus System ---');
+% Base MVA
+MVA_base = 100;
+% Line data
+z12 = 0.02 + 1i*0.04;
+z23 = 0.0125 + 1i*0.025;
+z13 = 0.01 + 1i*0.03;
+y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
+% Y-bus
+Y = [ y12+y13 -y12 -y13;
+-y12 y12+y23 -y23;
+-y13 -y23 y13+y23];
+% Bus data
+V1 = 1.05*exp(1i*0); % Slack
+P2_spec = -400/MVA_base; % -4.0 pu
+Q2_spec = -250/MVA_base; % -2.5 pu
+P3_spec = 200/MVA_base; % +2.0 pu
+V3_mag = 1.04; % PV bus magnitude fixed
+% Initial guesses
+V2 = 1.0*exp(1i*0);
+V3 = V3_mag*exp(1i*0);
+for iter = 1:10
+V = [V1; V2; V3];
+nbus = 3;
+% Power injections
+S = zeros(3,1);
+for i = 1:nbus
+Ii = 0;
+for j = 1:nbus
+Ii = Ii + Y(i,j)*V(j);
+end
+S(i) = V(i)*conj(Ii);
+end
+P = real(S); Q = -imag(S);
+% Mismatch vector [dP2; dQ2; dP3]
+dP2 = P2_spec - P(2);
+dQ2 = Q2_spec - Q(2);
+dP3 = P3_spec - P(3);
+mismatch = [dP2; dQ2; dP3];
+% Jacobian (δ2, V2, δ3 are unknowns)
+V2m=abs(V2); d2=angle(V2);
+V3m=abs(V3); d3=angle(V3);
+V1m=abs(V1); d1=angle(V1);
+% For simplicity, we use numerical Jacobian
+h = 1e-6;
+f = @(x) NR_mismatch(x,V1,V3_mag,Y,P2_spec,Q2_spec,P3_spec);
+J = zeros(3);
+for k=1:3
+x0=[d2;V2m;d3];
+dx=zeros(3,1); dx(k)=h;
+f1=f(x0+dx); f0=f(x0);
+J(:,k)=(f1-f0)/h;
+end
+% Solve corrections
+corr = J\mismatch;
+d2 = d2 + corr(1);
+V2m = V2m + corr(2);
+d3 = d3 + corr(3);
+% Update
+V2 = V2m*exp(1i*d2);
+V3 = V3_mag*exp(1i*d3);
+fprintf('Iter %d: V2=%.4f∠%.2f°, V3=%.4f∠%.2f° |Mismatch|=%.4f\n', ...
+iter, abs(V2), rad2deg(angle(V2)), abs(V3), rad2deg(angle(V3)), norm(mismatch));
+if norm(mismatch) < 1e-4, break; end
+end
+%% Helper function for Q4.2 mismatch
+function mis = NR_mismatch(x,V1,V3mag,Y,P2_spec,Q2_spec,P3_spec)
+d2=x(1); V2mag=x(2); d3=x(3);
+V2=V2mag*exp(1i*d2);
+V3=V3mag*exp(1i*d3);
+V=[V1;V2;V3];
+nbus=3;
+S=zeros(3,1);
+for i=1:nbus
+Ii=0;
+for j=1:nbus
+Ii=Ii+Y(i,j)*V(j);
+end
+S(i)=V(i)*conj(Ii);
+end
+P=real(S); Q=-imag(S);
+dP2=P2_spec-P(2);
+dQ2=Q2_spec-Q(2);
+dP3=P3_spec-P(3);
+mis=[dP2; dQ2; dP3];
+end;
+</textarea>
+
+<textarea id="exp5-code" class="hidden-code">
+    clc; clear; close all;
+disp('--- Experiment 5.1: Two-Bus System ---');
+MVA_base = 100;
+% Line data
+z12 = 0.12 + 1i*0.16;
+y12 = 1/z12;
+Y = [ y12 -y12;
+-y12 y12];
+B = -imag(Y);
+% Bus data
+V1 = 1; % Slack
+P2_spec = -100/MVA_base; % -1.0 pu
+Q2_spec = -50/MVA_base; % -0.5 pu
+% Initial guess
+V2 = 1.0; delta2 = 0;
+for iter = 1:2
+V = [V1*exp(1i*0); V2*exp(1i*delta2)];
+I2 = Y(2,:)*V;
+S2 = V(2)*conj(I2);
+P2 = real(S2); Q2 = -imag(S2);
+dP = P2_spec - P2;
+dQ = Q2_spec - Q2;
+d_delta2 = dP / (B(2,2)*V2^2);
+d_V2 = dQ / (B(2,2)*V2);
+delta2 = delta2 + d_delta2;
+V2 = V2 + d_V2;
+end
+fprintf('Bus 1: %.4f ∠ %.2f°\n', V1, 0);
+fprintf('Bus 2: %.4f ∠ %.2f°\n\n', V2, rad2deg(delta2));
+disp('--- Experiment 5.2: Three-Bus System ---');
+% Line data
+z12 = 0.02 + 1i*0.04;
+z23 = 0.0125 + 1i*0.025;
+z13 = 0.01 + 1i*0.03;
+y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
+Y = [ y12+y13 -y12 -y13;
+-y12 y12+y23 -y23;
+-y13 -y23 y13+y23];
+B = -imag(Y);
+% Bus data
+V1 = 1.05*exp(1i*0); % Slack
+P2_spec = -400/MVA_base; % PQ bus
+Q2_spec = -250/MVA_base;
+P3_spec = 200/MVA_base; % PV bus
+V3_mag = 1.04;
+% Initial guesses
+V2 = 1.0*exp(1i*0);
+V3 = V3_mag*exp(1i*0);
+% Indices
+Pbus = [2 3]; % buses with P eqns
+PQ = [2]; % buses with Q eqns
+Bp = B(Pbus,Pbus);
+Bpp = B(PQ,PQ);
+for iter = 1:10
+V = [V1; V2; V3];
+I = Y*V; S = V.*conj(I);
+P = real(S); Q = -imag(S);
+dP = [P2_spec-P(2); P3_spec-P(3)];
+dQ = [Q2_spec-Q(2)];
+d_delta = Bp \ dP;
+d_Vmag = Bpp \ dQ;
+delta = angle(V);
+Vmag = abs(V);
+delta(Pbus) = delta(Pbus) + d_delta;
+Vmag(PQ) = Vmag(PQ) + d_Vmag;
+V1 = abs(V1)*exp(1i*delta(1));
+V2 = Vmag(2)*exp(1i*delta(2));
+V3 = V3_mag*exp(1i*delta(3));
+if norm([dP; dQ]) < 1e-4, break; end
+end
+fprintf('Bus 1: %.4f ∠ %.2f°\n', abs(V1), rad2deg(angle(V1)));
+fprintf('Bus 2: %.4f ∠ %.2f°\n', abs(V2), rad2deg(angle(V2)));
+fprintf('Bus 3: %.4f ∠ %.2f°\n', abs(V3), rad2deg(angle(V3)));
+</textarea>
+
+<textarea id="exp6-code" class="hidden-code">
+    clc; clear; close all;
+disp('--- Experiment 6.1: Two-Bus System ---');
+MVA_base = 100;
+% Line data
+z12 = 0.12 + 1i*0.16;
+y12 = 1/z12;
+Y = [ y12 -y12;
+-y12 y12];
+% Bus data
+V1 = 1; % Slack
+P2_spec = -100/MVA_base; % PQ bus
+Q2_spec = -50/MVA_base;
+S2_spec = P2_spec + 1i*Q2_spec;
+% Initial guess
+V2 = 1 + 0i;
+for iter = 1:2
+% Update PQ bus voltage using GS formula
+V2 = (1/Y(2,2)) * ((conj(S2_spec)/conj(V2)) - Y(2,1)*V1);
+end
+fprintf('Bus 1: %.4f ∠ %.2f°\n', V1, 0);
+fprintf('Bus 2: %.4f ∠ %.2f°\n\n', abs(V2), rad2deg(angle(V2)));
+disp('--- Experiment 6.2: Three-Bus System ---');
+% Line data
+z12 = 0.02 + 1i*0.04;
+z23 = 0.0125 + 1i*0.025;
+z13 = 0.01 + 1i*0.03;
+y12 = 1/z12; y23 = 1/z23; y13 = 1/z13;
+Y = [ y12+y13 -y12 -y13;
+-y12 y12+y23 -y23;
+-y13 -y23 y13+y23];
+% Bus data
+V1 = 1.05*exp(1i*0); % Slack
+P2_spec = -400/MVA_base; % PQ bus
+Q2_spec = -250/MVA_base;
+S2_spec = P2_spec + 1i*Q2_spec;
+P3_spec = 200/MVA_base; % PV bus (P specified, |V| fixed)
+V3_mag = 1.04;
+% Initial guesses
+V2 = 1.0 + 0i;
+V3 = V3_mag*exp(1i*0);
+for iter = 1:10
+% Update V2 (PQ bus)
+V2 = (1/Y(2,2)) * ((conj(S2_spec)/conj(V2)) - (Y(2,1)*V1 + Y(2,3)*V3));
+% Update V3 (PV bus): compute Q3 from power balance
+I3 = Y(3,1)*V1 + Y(3,2)*V2 + Y(3,3)*V3;
+S3 = V3*conj(I3);
+Q3_calc = -imag(S3); % reactive power injection
+S3_spec = P3_spec + 1i*Q3_calc; % use this for update
+V3 = (1/Y(3,3)) * ((conj(S3_spec)/conj(V3)) - (Y(3,1)*V1 + Y(3,2)*V2));
+% Enforce |V3| = specified magnitude
+V3 = V3_mag * exp(1i*angle(V3));
+end
+fprintf('Bus 1: %.4f ∠ %.2f°\n', abs(V1), rad2deg(angle(V1)));
+fprintf('Bus 2: %.4f ∠ %.2f°\n', abs(V2), rad2deg(angle(V2)));
+fprintf('Bus 3: %.4f ∠ %.2f°\n', abs(V3), rad2deg(angle(V3)));
+</textarea>
+
 
     <script src="script.js"></script>
 </body>
