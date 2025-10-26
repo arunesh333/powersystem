@@ -3,123 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power System Lab Exps</title>
+    <title>Lab Experiments</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Power System Lab Exps</h1>
-        </header>
-        
-        <main class="lab-list">
-            <a href="#" class="lab-item" data-copy-target="exp1-code">1. Formation of bus admittance matrix using MATLAB program.</a>
-            <a href="#" class="lab-item" data-copy-target="exp2-code">2. Formation of bus impedance matrix using bus building algorithm in MATLAB.</a>
-            <a href="#" class="lab-item" data-copy-target="exp3-code">3. MATLAB solution for Gauss-Seidel load flow.</a>
-            <a href="#" class="lab-item" data-copy-target="exp4-code">4. NR load flow analysis using MATLAB program.</a>
-            <a href="#" class="lab-item" data-copy-target="exp5-code">5. MATLAB solution for Fast Decoupled load flow.</a>
-            <a href="#" class="lab-item" data-copy-target="exp6-code">6. MATLAB solution of swing equation by point-by-point method.</a>
-            <a href="#" class="lab-item" data-copy-target="exp7-code">7. MATLAB program for obtaining critical clearing angle and time using EAC (SMIB system).</a>
-        </main>
-    </div>
+    <div class="main-content">
 
-    <div id="copy-notification">
+        <div class="lab-column">
+            <header>
+                <h1>Power System Lab Exps</h1>
+            </header>
+            
+            <main class="experiment-list">
+                <a href="#" class="lab-item" data-copy-target="exp1-code">1. Formation of bus admittance matrix using MATLAB program.</a>
+                <a href="#" class="lab-item" data-copy-target="exp2-code">2. Formation of bus impedance matrix using bus building algorithm in MATLAB.</a>
+                <a href="#" class="lab-item" data-copy-target="exp3-code">3. MATLAB solution for Gauss-Seidel load flow.</a>
+                <a href="#" class="lab-item" data-copy-target="exp4-code">4. NR load flow analysis using MATLAB program.</a>
+                <a href="#" class="lab-item" data-copy-target="exp5-code">5. MATLAB solution for Fast Decoupled load flow.</a>
+                <a href="#" class="lab-item" data-copy-target="exp6-code">6. MATLAB solution of swing equation by point-by-point method.</a>
+                <a href="#" class="lab-item" data-copy-target="exp7-code">7. MATLAB program for obtaining critical clearing angle and time using EAC (SMIB system).</a>
+            </main>
+        </div>
+
+        <div class="lab-column">
+            <header>
+                <h1>SGEV Lab Exps</h1>
+            </header>
+            
+            <main class="experiment-list">
+                <a href="#" class="lab-item unavailable">9. Battery Balancing and parameter estimation for Li-ion batteries</a>
+                
+                <a href="files/Exp10_thermal_modelling.slx" class="lab-item" download>10. Thermal modelling of Li-ion batteries</a>
+
+                <a href="#" class="lab-item unavailable">11. Development of an enhanced self-correcting model of Li-ion battery and determination of its coulombic efficiency</a>
+
+                <a href="#" class="lab-item unavailable">12. Modelling and analysis of a hybrid electric vehicle drivetrain with modified Indian driving cycle</a>
+
+                <div class="item-grid">
+                    <a href="files/Exp13_CCCV.slx" class="lab-item" download>13. Dev. of supervisory control algorithms for BMS - A</a>
+                    <a href="files/Exp13_CCCV_simscape.slx" class="lab-item" download>13. Dev. of supervisory control algorithms for BMS - B</a>
+                </div>
+
+                <div class="item-grid">
+                    <a href="files/Exp14_Kalman_final.slx" class="lab-item" download>14. Analysis of SOC estimation algorithm using the EKF - Simulink</a>
+                    <a href="#" class="lab-item" data-copy-target="exp14-code">14. Analysis of SOC estimation algorithm using the EKF - Matlab Code</a>
+                </div>
+
+            </main>
+        </div>
+
+    </div> <div id="copy-notification">
         Copied to clipboard!
     </div>
-
+    <div id="unavailable-notification">
+        Resource not available!
+    </div>
 
 <textarea id="exp1-code" class="hidden-code">
-        function Ybus = formYbus(linedata)
-            % formYbus: Forms the bus admittance matrix (Ybus)
-            %
-            % linedata format:
-            % Col 1: From Bus (i)
-            % Col 2: To Bus (k)
-            % Col 3: Series Resistance (R) in p.u.
-            % Col 4: Series Reactance (X) in p.u.
-            % Col 5: Total Line Charging Admittance (y'_sh) in p.u.
-            %        (This is B_c, so it's a positive value)
-
-            % Find the number of buses
-            nbus = max(max(linedata(:, 1:2)));
-
-            % Initialize Ybus as an n x n matrix of zeros
-            Ybus = zeros(nbus, nbus);
-
-            % Get the number of lines
-            nlines = size(linedata, 1);
-
-            % Process each line one by one
-            for i = 1:nlines
-                % Get line parameters
-                f_bus = linedata(i, 1); % From bus
-                t_bus = linedata(i, 2); % To bus
-                
-                Z_series = linedata(i, 3) + 1j * linedata(i, 4);
-                y_series = 1 / Z_series;
-                
-                y_shunt = 1j * linedata(i, 5) / 2; % Half at each end
-
-                % Add to Off-Diagonal Elements
-                Ybus(f_bus, t_bus) = Ybus(f_bus, t_bus) - y_series;
-                Ybus(t_bus, f_bus) = Ybus(f_bus, t_bus); % Ybus is symmetric
-                
-                % Add to Diagonal Elements
-                Ybus(f_bus, f_bus) = Ybus(f_bus, f_bus) + y_series + y_shunt;
-                Ybus(t_bus, t_bus) = Ybus(t_bus, t_bus) + y_series + y_shunt;
-            end
-        end
-
-
-        % Script to compute Ybus for Exercise 1.1
-        clc;
-        clear;
-        format short;
-
-        % Define the line data
-        % [From, To, R, X, Total_B]
-        linedata_1_1 = [
-            1, 2, 0.2,  0.8,  0.02;
-            2, 3, 0.3,  0.9,  0.03;
-            2, 4, 0.25, 1.0,  0.04;
-            3, 4, 0.2,  0.8,  0.02;
-            1, 3, 0.1,  0.4,  0.01
-        ];
-
-        % Call the function to form Ybus
-        Ybus_1_1 = formYbus(linedata_1_1);
-
-        % Display the result
-        disp('*** Bus Admittance Matrix (Ybus) for Exercise 1.1 ***');
-        disp(Ybus_1_1);
+    Formation of bus admittance matrix using MATLAB Program.
+    Clc; clear;
+    % Line data: [From To R X B/2]
+    L = [1 2 0.2 0.8 0.02/2;
+    2 3 0.3 0.9 0.03/2;
+    2 4 0.25 1.0 0.04/2;
+    4 3 0.2 0.8 0.02/2;
+    1 3 0.1 0.4 0.01/2];
+    nl = L(:,1); nr = L(:,2); R = L(:,3); X = L(:,4); Bc = 1i*L(:,5);
+    Z = R + 1i*X; y = 1./Z;
+    nbus = max(max(nl), max(nr)); nbr = length(L);
+    Y = zeros(nbus);
+    for k=1:nbr
+    Y(nl(k),nr(k)) = Y(nl(k),nr(k)) - y(k);
+    Y(nr(k),nl(k)) = Y(nr(k),nl(k)) - y(k);
+    end
+    for k=1:nbr
+    Y(nl(k),nl(k)) = Y(nl(k),nl(k)) + y(k) + Bc(k);
+    Y(nr(k),nr(k)) = Y(nr(k),nr(k)) + y(k) + Bc(k);
+    end
+    disp('Ybus Matrix ='); disp(Y);
 </textarea>
 
 <textarea id="exp2-code" class="hidden-code">
-    clc;
-clear;
-z12 = 0.2j;
-Zbus = z12;
-z13 = 0.4j;
-Zbus = blkdiag(Zbus, z13);
-z23 = 0.8j;
-dZ = Zbus(:,1) - Zbus(:,2);
-Zee = z23 + Zbus(1,1) + Zbus(2,2) - 2*Zbus(1,2);
-Zbus = Zbus - (dZ * dZ') / Zee;
-z24 = 0.4j;
-m = size(Zbus,1);
-Znew = zeros(m+1);
-Znew(1:m,1:m) = Zbus;
-Znew(1:m,end) = Zbus(:,1);
-Znew(end,1:m) = Zbus(1,:);
-Znew(end,end) = Zbus(1,1) + z24;
-Zbus = Znew;
-z34 = 0.4j;
-dZ = Zbus(:,2) - Zbus(:,3);
-Zee = z34 + Zbus(2,2) + Zbus(3,3) - 2*Zbus(2,3);
-Zbus = Zbus - (dZ * dZ') / Zee;
-disp('Final Bus Impedance Matrix Zbus:');
-disp(Zbus);
+    Formation of bus impedance matrix using bus building
+algorithm in MATLAB
+clc; clear;
+% formation of bus impedance matrix using Z-bus building algorithm
+linedata = [0 1 0 1.25;
+2 4 0 0.125;
+1 2 0 0.25;
+2 3 0 0.4;
+4 3 0 0.2;
+3 0 0 1.25];
+nl = linedata(:,1); % 'from' bus
+nr = linedata(:,2); % 'to' bus
+R = linedata(:,3);
+X = linedata(:,4);
+nbr = length(linedata(:,1));
+nbus = max(max(nl), max(nr));
+ZB = R + 1j*X;
+Zbus = zeros(nbus, nbus);
+tree = 0;
+ntree = ones(nbr,1);
+% Step 1: Add branch from new bus to reference bus
+for I = 1:nbr
+if nl(I) == 0 || nr(I) == 0
+if nl(I) == 0
+n = nr(I);
+else
+n = nl(I);
+end
+if abs(Zbus(n,n)) == 0
+Zbus(n,n) = ZB(I);
+tree = tree + 1;
+else
+Zbus(n,n) = Zbus(n,n)*ZB(I)/(Zbus(n,n) + ZB(I));
+end
+ntree(I) = 2;
+end
+end
+% Step 2: Add branch from new bus to existing bus
+while tree < nbus
+for n = 1:nbus
+nadd = 1;
+if abs(Zbus(n,n)) == 0
+for I = 1:nbr
+if nadd == 1
+if nl(I) == n || nr(I) == n
+if nl(I) == n
+k = nr(I);
+else
+k = nl(I);
+end
+if abs(Zbus(k,k)) ~= 0
+for m = 1:nbus
+if m ~= n
+Zbus(m,n) = Zbus(m,k);
+Zbus(n,m) = Zbus(m,k);
+end
+end
+Zbus(n,n) = Zbus(k,k) + ZB(I);
+tree = tree + 1;
+nadd = 2;
+ntree(I) = 2;
+end
+end
+end
+end
+end
+end
+end
+% Step 3: Add links between two old buses
+for n = 1:nbus
+for I = 1:nbr
+if ntree(I) == 1
+if nl(I) == n || nr(I) == n
+if nl(I) == n
+k = nr(I);
+else
+k = nl(I);
+end
+DM = Zbus(n,n) + Zbus(k,k) + ZB(I) - 2*Zbus(n,k);
+for jj = 1:nbus
+AP = Zbus(jj,n) - Zbus(jj,k);
+for kk = 1:nbus
+AT = Zbus(n,kk) - Zbus(k,kk);
+DELZ(jj,kk) = AP*AT/DM;
+end
+end
+Zbus = Zbus - DELZ;
+ntree(I) = 2;
+end
+end
+end
+end
+fprintf('\nThe Bus Impedance Matrix for the given network is\n')
+disp(Zbus)
 </textarea>
 
 <textarea id="exp3-code" class="hidden-code">
@@ -577,7 +636,40 @@ plot([delta_max_b_deg, delta_max_b_deg], [0, Pm], 'c--');
 text(delta_max_b_deg, -0.1, sprintf('\\delta_{max} = %.1f^o', delta_max_b_deg));
 hold off;
 </textarea>
+<textarea id="exp14-code" class="hidden-code">
+    %Script to run the kamlan filter model
+%% System Parameters
+SOC_vec = [0, .1, .25, .5, .75, .9, 1]; % Vector of state-of-charge values, SOC
+T_vec   = [278, 293, 313];              % Vector of temperatures, T, (K)
+AH      = 27;                           % Cell capacity, AH, (A*hr) 
+thermal_mass = 100;                     % Thermal mass (J/K)
+initialSOC = 0.5;                       % Battery initial SOC
+V0_mat  = [3.49, 3.5, 3.51; 3.55, 3.57, 3.56; 3.62, 3.63, 3.64;...
+    3.71, 3.71, 3.72; 3.91, 3.93, 3.94; 4.07, 4.08, 4.08;...
+    4.19, 4.19, 4.19];                          % Open-circuit voltage, V0(SOC,T), (V)
+R0_mat  = [.0117, .0085, .009; .011, .0085, .009;...
+    .0114, .0087, .0092; .0107, .0082, .0088; .0107, .0083, .0091;...
+    .0113, .0085, .0089; .0116, .0085, .0089];  % Terminal resistance, R0(SOC,T), (ohm)
 
+R1_mat  = [.0109, .0029, .0013; .0069, .0024, .0012;...
+    .0047, .0026, .0013; .0034, .0016, .001; .0033, .0023, .0014;...
+    .0033, .0018, .0011; .0028, .0017, .0011];  % First polarization resistance, R1(SOC,T), (ohm)
+tau1_mat = [20, 36, 39; 31, 45, 39; 109, 105, 61;...
+    36, 29, 26; 59, 77, 67; 40, 33, 29; 25, 39, 33]; % First time constant, tau1(SOC,T), (s)
+
+cell_area = 0.1019; % Cell area (m^2)
+h_conv    = 5;      % Heat transfer coefficient (W/(K*m^2))
+
+%% Kalman Filter
+Q    = [1e-4 0; 0 1e-4]; % Covariance of the process noise, Q
+R    = 0.7;              % Covariance of the measurement noise, R
+P0   = [1e-5 0; 0 1];    % Initial state error covariance, P0
+SOC0 = 0.8;              % Initial SOC for estimator 
+Ts   = 1;                % Sample time
+%%open the model
+open_system('Exp14_Kalman_final')
+sim("Exp14_Kalman_final")
+</textarea>
     <script src="script.js"></script>
 </body>
 </html>

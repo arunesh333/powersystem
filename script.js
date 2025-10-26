@@ -1,67 +1,80 @@
 // Wait for the document to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Get all elements with the class "lab-item"
-    const labItems = document.querySelectorAll('.lab-item');
-    
-    // Get the notification element
-    const notification = document.getElementById('copy-notification');
-
-    // Variable to hold the timer for the notification
+    // Get the notification elements
+    const copyNotification = document.getElementById('copy-notification');
+    const unavailableNotification = document.getElementById('unavailable-notification');
     let notificationTimer;
 
-    // Loop through each lab-item (each <a> tag)
-    labItems.forEach(item => {
+    /**
+     * Helper function to show a notification.
+     * It clears any existing timers and hides other popups.
+     * @param {HTMLElement} notificationElement The notification element to show.
+     */
+    function showNotification(notificationElement) {
+        // Clear any existing timer
+        if (notificationTimer) {
+            clearTimeout(notificationTimer);
+        }
         
-        // Add a click event listener to each one
+        // Hide all notifications first
+        copyNotification.classList.remove('show');
+        unavailableNotification.classList.remove('show');
+
+        // Show the correct one
+        notificationElement.classList.add('show');
+
+        // Set a timer to hide it after 2 seconds
+        notificationTimer = setTimeout(() => {
+            notificationElement.classList.remove('show');
+        }, 2000);
+    }
+
+
+    // 1. Add click listeners for "Copy" items
+    document.querySelectorAll('.lab-item[data-copy-target]').forEach(item => {
+        
         item.addEventListener('click', (event) => {
-            
-            // 1. Prevent the link from jumping to the top of the page
+            // Prevent the <a> tag from navigating
             event.preventDefault(); 
             
-            let textToCopy = ''; // Will hold the text we want to copy
-
-            // 2. MODIFIED LOGIC: Check for a data-copy-target attribute
             const targetId = item.dataset.copyTarget;
+            const codeElement = document.getElementById(targetId);
             
-            if (targetId) {
-                // If it exists, find the element with that ID
-                const codeElement = document.getElementById(targetId);
-                if (codeElement) {
-                    // Get the text from the <textarea>
-                    textToCopy = codeElement.value;
-                } else {
-                    // Fallback in case the ID is wrong
-                    console.warn(`Could not find element with ID: ${targetId}`);
-                    textToCopy = item.innerText;
-                }
+            if (codeElement) {
+                const textToCopy = codeElement.value;
+                
+                // Use the modern Clipboard API
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        // SUCCESS: Show the "Copied!" notification
+                        showNotification(copyNotification);
+                    })
+                    .catch(err => {
+                        // ERROR:
+                        console.error('Failed to copy text: ', err);
+                    });
             } else {
-                // If no data-copy-target, just copy the box's visible text
-                textToCopy = item.innerText;
+                console.warn(`Could not find element with ID: ${targetId}`);
             }
-
-            // 3. Use the modern Clipboard API to copy the determined text
-            navigator.clipboard.writeText(textToCopy)
-                .then(() => {
-                    // SUCCESS:
-                    // Show the notification
-                    notification.classList.add('show');
-
-                    // Clear any existing timer so it resets
-                    if (notificationTimer) {
-                        clearTimeout(notificationTimer);
-                    }
-
-                    // Set a timer to hide the notification after 2 seconds
-                    notificationTimer = setTimeout(() => {
-                        notification.classList.remove('show');
-                    }, 2000);
-
-                })
-                .catch(err => {
-                    // ERROR:
-                    console.error('Failed to copy text: ', err);
-                });
         });
     });
+
+    // 2. Add click listeners for "Unavailable" items
+    document.querySelectorAll('.lab-item.unavailable').forEach(item => {
+        
+        item.addEventListener('click', (event) => {
+            // Prevent the <a> tag from navigating
+            event.preventDefault(); 
+            
+            // Show the "Not Available" notification
+            showNotification(unavailableNotification);
+        });
+    });
+
+    // 3. For "Download" items (those with 'download' attribute)
+    // No JavaScript is needed. By *not* selecting them and *not*
+    // calling event.preventDefault(), the browser's default
+    // download behavior will work perfectly.
+
 });
